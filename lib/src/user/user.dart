@@ -7,6 +7,7 @@ import 'package:isolate_json/isolate_json.dart';
 class User {
   static const String _baseUserEndpoint = 'user';
   static const String _loginEndpoint = 'login';
+  static const String _logoutEndpoint = 'logout';
   static const String _passwordChangeEndpoint = 'password';
   static const String _forgotPasswordEndpoint = 'forgotpassword';
 
@@ -145,6 +146,25 @@ class User {
       throw bodyResp['description'];
     }
     return ExtendSuccessResponse.fromJson(bodyResp);
+  }
+
+  /// Handle logout of an existing user.
+  ///
+  /// Can optionally logout from all devices
+  /// with the [logout_all] parameter.
+  Future<void> logout({bool logout_all = false}) async {
+    final uri = _urlBase.getPath(_logoutEndpoint);
+
+    final body = await JsonIsolate().encodeJson({
+      'logout_all': logout_all,
+    });
+
+    final resp = await post(uri, body: body);
+    final Map<String, dynamic> bodyResp =
+        await JsonIsolate().decodeJson(resp.body);
+    if (resp.statusCode != 200) {
+      throw bodyResp['description'];
+    }
   }
 
   /// Changes a user password.
