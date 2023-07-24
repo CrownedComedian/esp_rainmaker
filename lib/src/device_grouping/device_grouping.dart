@@ -45,7 +45,7 @@ class DeviceGrouping {
   /// parameters and allows for metadata
   /// storage in the [type] parameter.
   Future<void> createGroup(String groupName,
-      [String? parentGroupId, String? type, List<String>? nodeIds]) async {
+      [String? parentGroupId, String? type, String? description, List<String>? nodeIds]) async {
     final uri = _urlBase.getPath(_devGroupBase);
 
     final body = await JsonIsolate().encodeJson({
@@ -53,6 +53,7 @@ class DeviceGrouping {
       'parent_group_id': parentGroupId,
       'type': type,
       'nodes': nodeIds,
+      'description': description,
     });
 
     final resp = await post(uri, body: body, headers: {
