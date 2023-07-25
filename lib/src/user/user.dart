@@ -237,6 +237,9 @@ class User {
     final resp = await put(uri, body: body);
     final bodyResp = await JsonIsolate().decodeJson(resp.body);
     if (resp.statusCode != 200) {
+      if (bodyResp['error_code'] == 101012) {
+        throw BadVerificationException();
+      }
       throw bodyResp['description'];
     }
   }
