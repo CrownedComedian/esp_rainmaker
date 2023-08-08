@@ -58,7 +58,7 @@ class DeviceGroup {
     return DeviceGroup(
       id: json['group_id'],
       name: json['group_name'],
-      nodes: json['nodes'].cast<String>(),
+      nodes: json['nodes']?.cast<String>(),
       subgroups: (json['sub_groups'] as List?)
           ?.map<DeviceGroup>((e) => DeviceGroup.fromJson(e))
           .toList(),
