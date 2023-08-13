@@ -30,13 +30,23 @@ class NodeAssociation {
   Future<NodesList> nodes(
       {String? nodeId,
       bool includeNodeDetails = false,
+      bool status = true,
+      bool config = true,
+      bool params = true,
       String? startId,
-      int? numRecords}) async {
+      int? numRecords,
+      showTags = false,
+      isMatter = false}) async {
     final uri = _urlBase.getPath(_nodesBase, {
       'node_id': nodeId ?? '',
       'node_details': includeNodeDetails.toString(),
+      'status': status.toString(),
+      'config': config.toString(),
+      'params': params.toString(),
       'start_id': startId ?? '',
       'num_records': numRecords?.toString() ?? '',
+      'show_tags': showTags.toString(),
+      'is_matter': isMatter.toString(),
     });
 
     final resp = await get(

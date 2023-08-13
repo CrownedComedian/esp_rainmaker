@@ -48,27 +48,32 @@ class NodeDetails {
   /// The node's ID.
   final String id;
 
+  /// The node's role.
+  final String role;
+
   /// The connectivity status of the node.
-  final NodeConnectivity status;
+  final NodeConnectivity? status;
 
   /// Configuration data related to the node.
-  final NodeConfig config;
+  final NodeConfig? config;
 
   /// Key-value pairs of the parameters associated with a node.
-  final Map<String, dynamic> params;
+  final Map<String, dynamic>? params;
 
   const NodeDetails({
     required this.id,
-    required this.status,
-    required this.config,
-    required this.params,
+    required this.role,
+    this.status,
+    this.config,
+    this.params,
   });
 
   factory NodeDetails.fromJson(Map<String, dynamic> json) {
     return NodeDetails(
       id: json['id'],
-      status: NodeConnectivity.fromJson(json['status']['connectivity']),
-      config: NodeConfig.fromJson(json['config']),
+      role: json['role'],
+      status: json['status'] != null ? NodeConnectivity.fromJson(json['status']['connectivity']) : null,
+      config: json['config'] != null ? NodeConfig.fromJson(json['config']) : null,
       params: json['params'],
     );
   }
@@ -86,11 +91,11 @@ class NodeConnectivity {
   final bool isConnected;
 
   /// Last time at which a node was connected.
-  final int timestamp;
+  final int? timestamp;
 
   const NodeConnectivity({
     required this.isConnected,
-    required this.timestamp,
+    this.timestamp,
   });
 
   factory NodeConnectivity.fromJson(Map<String, dynamic> json) {
