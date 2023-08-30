@@ -61,7 +61,7 @@ class DeviceGrouping {
   /// Creates a new group with the available
   /// parameters and allows for metadata
   /// storage in the [type] parameter.
-  Future<void> createGroup(
+  Future<String> createGroup(
     String groupName,
   {
     String? parentGroupId,
@@ -87,6 +87,8 @@ class DeviceGrouping {
     if (resp.statusCode != 200) {
       throw bodyResp['description'];
     }
+
+    return bodyResp['group_id'];
   }
 
   /// Updates an existing user device group.
