@@ -1,6 +1,6 @@
 import 'package:meta/meta.dart';
 
-/// Data associated with a succesful login.
+/// Data associated with a successful login.
 @immutable
 class LoginSuccessResponse {
   final String idToken;
@@ -23,7 +23,28 @@ class LoginSuccessResponse {
   }
 }
 
-/// Data associated with a succesful session extension.
+/// Data associated with a successful login without a password.
+@immutable
+class LoginWithoutPassword {
+  final String status;
+  final String description;
+  final String session;
+
+  const LoginWithoutPassword(
+      {required this.status,
+        required this.description,
+        required this.session});
+
+  factory LoginWithoutPassword.fromJson(Map<String, dynamic> json) {
+    return LoginWithoutPassword(
+      status: json['status'],
+      description: json['description'],
+      session: json['session'],
+    );
+  }
+}
+
+/// Data associated with a successful session extension.
 @immutable
 class ExtendSuccessResponse {
   final String idToken;
@@ -52,13 +73,18 @@ class UserData {
   final String? name;
   final bool isSuperAdmin;
   final String? pictureUrl;
+  final String? phoneNumber;
+  final bool mfa;
 
-  const UserData(
-      {required this.id,
-      required this.userName,
-      required this.name,
-      required this.isSuperAdmin,
-      required this.pictureUrl});
+  const UserData({
+    required this.id,
+    required this.userName,
+    required this.mfa,
+    this.isSuperAdmin = false,
+    this.name,
+    this.pictureUrl,
+    this.phoneNumber,
+  });
 
   factory UserData.fromJson(Map<String, dynamic> json) {
     return UserData(
@@ -67,11 +93,18 @@ class UserData {
       name: json['name'],
       pictureUrl: json['picture_url'],
       userName: json['user_name'],
+      mfa: json['mfa'],
+      phoneNumber: json['phone_number'],
     );
   }
 
   @override
   String toString() {
-    return 'UserData(Id: $id, UserName: $userName, IsSuperAdmin: $isSuperAdmin, Name: $name, Pic URL: $pictureUrl)';
+    return 'UserData(Id: $id, '
+        'UserName: $userName, '
+        'IsSuperAdmin: $isSuperAdmin, '
+        'Name: $name, '
+        'Pic URL: $pictureUrl, '
+        'MFA: $mfa, PhoneNumber: $phoneNumber)';
   }
 }

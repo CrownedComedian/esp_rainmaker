@@ -5,11 +5,11 @@ import 'package:isolate_json/isolate_json.dart';
 
 /// Provides access to methods for managing users.
 class User {
-  static const String _baseUserEndpoint = 'user';
-  static const String _loginEndpoint = 'login';
-  static const String _logoutEndpoint = 'logout';
-  static const String _passwordChangeEndpoint = 'password';
-  static const String _forgotPasswordEndpoint = 'forgotpassword';
+  static const String _baseUserEndpoint = 'user2';
+  static const String _loginEndpoint = 'login2';
+  static const String _logoutEndpoint = 'logout2';
+  static const String _passwordChangeEndpoint = 'password2';
+  static const String _forgotPasswordEndpoint = 'forgotpassword2';
 
   final URLBase _urlBase;
 
@@ -101,7 +101,7 @@ class User {
   /// if there is an incorrect username or password.
   Future<LoginSuccessResponse> login(String userName, String password) async {
     assert(_isValidPassword(password),
-        'The password must be at least 8 characters long. It should contain at least one uppercase, one lowercase character and a number.');
+    'The password must be at least 8 characters long. It should contain at least one uppercase, one lowercase character and a number.');
 
     final uri = _urlBase.getPath(_loginEndpoint);
 
@@ -124,16 +124,71 @@ class User {
     return LoginSuccessResponse.fromJson(bodyResp);
   }
 
+  /// Handle a login of an existing user without password.
+  ///
+  /// Used for MFA login.
+  /// Throws `UnverifiedEmailException` if email is
+  /// not verified. Throws `InvalidCredentialsException`
+  /// if there is an incorrect username or password.
+  Future<LoginWithoutPassword> loginWithoutPassword(String userName) async {
+    final uri = _urlBase.getPath(_loginEndpoint);
+
+    final body = await JsonIsolate().encodeJson({
+      'user_name': userName,
+    });
+
+    final resp = await post(uri, body: body);
+    final Map<String, dynamic> bodyResp =
+    await JsonIsolate().decodeJson(resp.body);
+    if (resp.statusCode != 200) {
+      if (bodyResp['error_code'] == 101015) {
+        throw UnverifiedEmailException();
+      } else if (bodyResp['error_code'] == 101009) {
+        throw InvalidCredentialsException();
+      }
+      throw bodyResp['description'];
+    }
+    return LoginWithoutPassword.fromJson(bodyResp);
+  }
+
+  /// Handle confirmation of a login of an existing user without password.
+  ///
+  /// Used for MFA login.
+  /// Throws `UnverifiedEmailException` if email is
+  /// not verified. Throws `InvalidCredentialsException`
+  /// if there is an incorrect username or password.
+  Future<LoginSuccessResponse> loginConfirm(String userName, String verificationCode, String session) async {
+    final uri = _urlBase.getPath(_loginEndpoint);
+
+    final body = await JsonIsolate().encodeJson({
+      'user_name': userName,
+      'verification_code': verificationCode,
+      'session': session,
+    });
+
+    final resp = await post(uri, body: body);
+    final Map<String, dynamic> bodyResp =
+    await JsonIsolate().decodeJson(resp.body);
+    if (resp.statusCode != 200) {
+      if (bodyResp['error_code'] == 101015) {
+        throw UnverifiedEmailException();
+      } else if (bodyResp['error_code'] == 101009) {
+        throw InvalidCredentialsException();
+      }
+      throw bodyResp['description'];
+    }
+    return LoginSuccessResponse.fromJson(bodyResp);
+  }
+
   /// Extends a session.
   ///
   /// Uses the refresh token provided upon
   /// logging in.
   Future<ExtendSuccessResponse> extendSession(
-      String userName, String refreshToken) async {
+      String refreshToken) async {
     final uri = _urlBase.getPath(_loginEndpoint);
 
     final body = await JsonIsolate().encodeJson({
-      'user_name': userName,
       'refreshtoken': refreshToken,
     });
 
@@ -270,18 +325,92 @@ class User {
     }
   }
 
+  /// Updates the phone number of the user.
+  ///
+  /// Takes the new phone number of the user
+  /// and their access token. Data is
+  /// not used by the Rainmaker service;
+  /// it's only for convenient storage of user data.
+  Future<void> setPhoneNumber(String phoneNumber, String accessToken) async {
+    final uri = _urlBase.getPath(_baseUserEndpoint);
+
+    final body = await JsonIsolate().encodeJson({
+      'name': phoneNumber,
+    });
+
+    final resp = await put(
+      uri,
+      body: body,
+      headers: {
+        URLBase.authHeader: accessToken,
+      },
+    );
+    final bodyResp = await JsonIsolate().decodeJson(resp.body);
+    if (resp.statusCode != 200) {
+      throw bodyResp['description'];
+    }
+  }
+
+  /// Confirms the phone number of the user.
+  ///
+  /// Takes the new name of the user
+  /// and their access token. Data is
+  /// not used by the Rainmaker service;
+  /// it's only for convenient storage of user data.
+  Future<void> confirmPhoneNumber(String verificationCode, String accessToken) async {
+    final uri = _urlBase.getPath(_baseUserEndpoint);
+
+    final body = await JsonIsolate().encodeJson({
+      'verification_code': verificationCode,
+    });
+
+    final resp = await put(
+      uri,
+      body: body,
+      headers: {
+        URLBase.authHeader: accessToken,
+      },
+    );
+    final bodyResp = await JsonIsolate().decodeJson(resp.body);
+    if (resp.statusCode != 200) {
+      throw bodyResp['description'];
+    }
+  }
+
+  /// Enable or disable MFA of user.
+  Future<void> mfa(bool enable, String accessToken) async {
+    final uri = _urlBase.getPath(_baseUserEndpoint);
+
+    final body = await JsonIsolate().encodeJson({
+      'mfa': enable,
+    });
+
+    final resp = await put(
+      uri,
+      body: body,
+      headers: {
+        URLBase.authHeader: accessToken,
+      },
+    );
+    final bodyResp = await JsonIsolate().decodeJson(resp.body);
+    if (resp.statusCode != 200) {
+      throw bodyResp['description'];
+    }
+  }
+
   /// Gets data associated with a user.
   ///
   /// Takes the the access token of the user.
   /// Returns object containing properties associated
   /// with a user.
-  Future<UserData> getUser(String accessToken) async {
+  Future<UserData> getUser(bool includeCustomData, String accessToken) async {
     final uri = _urlBase.getPath(_baseUserEndpoint);
 
     final resp = await get(
       uri,
       headers: {
         URLBase.authHeader: accessToken,
+        'custom_data': includeCustomData.toString(),
       },
     );
     final bodyResp = await JsonIsolate().decodeJson(resp.body);
