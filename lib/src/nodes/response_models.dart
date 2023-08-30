@@ -1,5 +1,7 @@
 import 'package:meta/meta.dart';
 
+import 'node_status.dart';
+
 /// List of node IDs and node data if requested.
 @immutable
 class NodesList {
@@ -81,6 +83,56 @@ class NodeDetails {
   @override
   String toString() {
     return 'NodeDetails(Node Id: $id, Connectivity Status: $status, Config: $config, Node Params: $params)';
+  }
+}
+
+@immutable
+class Schedule {
+  final Map<String, dynamic>? action;
+  final bool enabled;
+  final String id;
+  final String name;
+  final ScheduleTrigger trigger;
+
+  const Schedule({
+    required this.id,
+    required this.name,
+    required this.enabled,
+    required this.trigger,
+    this.action,
+  });
+
+  factory Schedule.fromJson(Map<String, dynamic> json) {
+    return Schedule(
+      id: json['id'],
+      name: json['name'],
+      enabled: json['enabled'],
+      trigger: json['triggers'],
+    );
+  }
+}
+
+@immutable
+class TimeZoneData {
+  final String timezone;
+  final String posix;
+
+  const TimeZoneData({
+    required this.timezone,
+    required this.posix,
+  });
+
+  factory TimeZoneData.fromJson(Map<String, dynamic> json) {
+    return TimeZoneData(
+      timezone: json['TZ'],
+      posix: json['TZ-POSIX'],
+    );
+  }
+
+  @override
+  String toString() {
+    // TODO: implement toString
+    return super.toString();
   }
 }
 

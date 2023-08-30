@@ -22,9 +22,26 @@ class DeviceGrouping {
   ///
   /// Gets all groups if the [groupId] is
   /// not provided.
-  Future<DeviceGroups> getGroup([String? groupId]) async {
+  /// Starts at the group after [startId] if provided, does not include it.
+  Future<DeviceGroups> getGroup({
+    String? groupId,
+    bool nodeList = false,
+    bool subGroups = false,
+    bool nodeDetails = false,
+    bool isMatter = false,
+    bool fabricDetails = false,
+    String? startId,
+    int numRecords = 25,
+  }) async {
     final uri = _urlBase.getPath(_devGroupBase, {
       'group_id': groupId ?? '',
+      'node_list': nodeList.toString(),
+      'sub_groups': subGroups.toString(),
+      'node_details': nodeDetails.toString(),
+      'is_matter': isMatter.toString(),
+      'fabric_details': fabricDetails.toString(),
+      'start_id': startId ?? '',
+      'num_records': numRecords.toString()
     });
 
     final resp = await get(uri, headers: {
@@ -44,8 +61,14 @@ class DeviceGrouping {
   /// Creates a new group with the available
   /// parameters and allows for metadata
   /// storage in the [type] parameter.
-  Future<void> createGroup(String groupName,
-      [String? parentGroupId, String? type, String? description, List<String>? nodeIds]) async {
+  Future<void> createGroup(
+    String groupName,
+  {
+    String? parentGroupId,
+    String? type,
+    String? description,
+    List<String>? nodeIds,
+  }) async {
     final uri = _urlBase.getPath(_devGroupBase);
 
     final body = await JsonIsolate().encodeJson({
@@ -74,7 +97,8 @@ class DeviceGrouping {
   Future<void> updateGroup(String groupId,
       {String? groupName,
       OperationType? operation,
-      List<String>? nodeIds}) async {
+      List<String>? nodeIds,
+      String? description}) async {
     final uri = _urlBase.getPath(_devGroupBase, {
       'group_id': groupId,
     });
@@ -83,6 +107,7 @@ class DeviceGrouping {
       'group_name': groupName,
       'operation': operation?.toShortString(),
       'nodes': nodeIds,
+      'description': description,
     });
 
     final resp = await put(uri, body: body, headers: {
