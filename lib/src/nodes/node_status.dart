@@ -11,7 +11,7 @@ class NodeState {
 
   static const String _nodeState = 'user/nodes/params';
 
-  /// Contructs object to access node state methods.
+  /// Constructs object to access node state methods.
   ///
   /// Uses the default API version of v1, though an
   /// alternative version can be specified.
@@ -284,6 +284,25 @@ class DayOfWeekTrigger extends ScheduleTrigger {
 
   const DayOfWeekTrigger(this.daysOfWeek, int minutesSinceMidnight)
       : super(minutesSinceMidnight);
+
+  factory DayOfWeekTrigger.fromJson(Map<String, dynamic> json) {
+    return DayOfWeekTrigger(
+      _parseBit(json['d']),
+      json['m']
+    );
+  }
+
+  static List<DaysOfWeek> _parseBit(int bit) {
+    List<DaysOfWeek> result = [];
+
+    for(int i = 0; i < DaysOfWeek.values.length; i++) {
+      if((bit & (1 << i)) != 0) {
+        result.add(DaysOfWeek.values[i]);
+      }
+    }
+
+    return result;
+  }
 }
 
 @immutable
@@ -303,6 +322,28 @@ class DateTrigger extends ScheduleTrigger {
   const DateTrigger(this.months, this.day, this.year, this.repeatEveryYear,
       int minutesSinceMidnight)
       : super(minutesSinceMidnight);
+
+  factory DateTrigger.fromJson(Map<String, dynamic> json) {
+    return DateTrigger(
+      _parseBit(json['mm']),
+      json['dd'],
+      json['yy'],
+      json['r'] == 1 ? true : false,
+      json['m'],
+    );
+  }
+
+  static List<MonthsOfYear> _parseBit(int bit) {
+    List<MonthsOfYear> result = [];
+
+    for(int i = 0; i < MonthsOfYear.values.length; i++) {
+      if((bit & (1 << i)) != 0) {
+        result.add(MonthsOfYear.values[i]);
+      }
+    }
+
+    return result;
+  }
 }
 
 enum DaysOfWeek {

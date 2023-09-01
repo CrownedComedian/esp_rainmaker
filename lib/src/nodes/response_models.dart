@@ -92,7 +92,7 @@ class Schedule {
   final bool enabled;
   final String id;
   final String name;
-  final ScheduleTrigger trigger;
+  final List<ScheduleTrigger> trigger;
 
   const Schedule({
     required this.id,
@@ -103,11 +103,23 @@ class Schedule {
   });
 
   factory Schedule.fromJson(Map<String, dynamic> json) {
+    List<dynamic> trigs = json['triggers'];
+
+    List<ScheduleTrigger> finalForm = trigs.map<ScheduleTrigger>((json) {
+      if(json['d'] != null && json['m'] != null) {
+        return DayOfWeekTrigger.fromJson(json);
+      } else {
+        return DateTrigger.fromJson(json);
+      }
+
+    }).toList();
+
     return Schedule(
       id: json['id'],
       name: json['name'],
       enabled: json['enabled'],
-      trigger: json['triggers'],
+      trigger: finalForm,
+      action: json['action']
     );
   }
 }
