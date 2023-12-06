@@ -13,7 +13,7 @@ class User {
 
   final URLBase _urlBase;
 
-  /// Contructs object to access user management methods.
+  /// Constructs object to access user management methods.
   ///
   /// Uses the default API version of v1, though an
   /// alternative version can be specified.
@@ -86,6 +86,75 @@ class User {
         throw InvalidEmailException();
       }
       if (bodyResp['error_code'] == 101012) {
+        throw BadVerificationException();
+      }
+      throw bodyResp['description'];
+    }
+  }
+
+  /// Sends a delete user request.
+  ///
+  /// The username must be the email used to create
+  /// the user. The verification code is sent to the
+  /// user's registered email address.
+  /// Throws `BadVerificationException` on a bad code.
+  Future<void> deleteUser(String accessToken) async {
+    assert(accessToken.isNotEmpty);
+
+    final uri = _urlBase.getPath(_baseUserEndpoint,
+      {
+        'request': 'true',
+      },
+    );
+
+    final resp = await delete(
+      uri,
+      headers: {
+        URLBase.authHeader: accessToken,
+      },
+    );
+    final Map<String, dynamic> bodyResp =
+    await JsonIsolate().decodeJson(resp.body);
+    if (resp.statusCode != 200) {
+      if (bodyResp['error_code'] == 101002) {
+        throw InvalidEmailException();
+      }
+      if (bodyResp['error_code'] == 119005) {
+        throw BadVerificationException();
+      }
+      throw bodyResp['description'];
+    }
+  }
+
+  /// Deletes a user.
+  ///
+  /// The username must be the email used to create
+  /// the user.
+  /// Throws `BadVerificationException` on a bad code.
+  Future<void> confirmDeleteUser(String verifCode, String accessToken) async {
+    assert(verifCode.isNotEmpty);
+    assert(accessToken.isNotEmpty);
+
+    final uri = _urlBase.getPath(_baseUserEndpoint,
+      {
+        'request': 'false',
+        'verification_code': verifCode,
+      },
+    );
+
+    final resp = await delete(
+      uri,
+      headers: {
+        URLBase.authHeader: accessToken,
+      },
+    );
+    final Map<String, dynamic> bodyResp =
+    await JsonIsolate().decodeJson(resp.body);
+    if (resp.statusCode != 200) {
+      if (bodyResp['error_code'] == 101002) {
+        throw InvalidEmailException();
+      }
+      if (bodyResp['error_code'] == 119005) {
         throw BadVerificationException();
       }
       throw bodyResp['description'];

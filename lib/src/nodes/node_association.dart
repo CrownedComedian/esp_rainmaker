@@ -14,7 +14,7 @@ class NodeAssociation {
   static const String _nodeStatus = _nodesBase + '/status';
   static const String _nodeSharing = _nodesBase + '/sharing';
 
-  /// Contructs object to access node association methods.
+  /// Constructs object to access node association methods.
   ///
   /// Requires [accessToken] obtained from authentication.
   /// Uses the default API version of v1, though an
