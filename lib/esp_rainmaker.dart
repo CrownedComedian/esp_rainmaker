@@ -1,5 +1,7 @@
 library esp_rainmaker;
 
+export 'src/url_base.dart';
+
 export 'src/user/user.dart';
 export 'src/user/response_models.dart';
 
