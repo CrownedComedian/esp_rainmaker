@@ -5,8 +5,10 @@ import 'package:esp_rainmaker/esp_rainmaker.dart';
 /// Is a fully static class that stores the base URL and
 /// provides methods to add data on to the base.
 class URLBase {
-  static const String _base = 'api.rainmaker.espressif.com';
   static const String authHeader = 'Authorization';
+
+  static String _base = 'api.rainmaker.espressif.com';
+  static String _basePath = '';
 
   final APIVersion? _version;
 
@@ -15,7 +17,22 @@ class URLBase {
 
   Uri getPath(String path, [Map<String, String>? queryParameters]) {
     return Uri.https(
-        _base, '/${_version!.toShortString()}/$path', queryParameters);
+      _base, '$_basePath/${_version!.toShortString()}/$path', queryParameters);
+  }
+
+  static set base(String base) {
+    List<String> baseWithBasePath = base.split('/');
+
+    if(baseWithBasePath.isEmpty) {
+      return;
+    }
+
+    _base = baseWithBasePath[0];
+    _basePath = baseWithBasePath.sublist(1).join("/");
+
+    if(_basePath.isNotEmpty) {
+      _basePath = "/$_basePath";
+    }
   }
 }
 

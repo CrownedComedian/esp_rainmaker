@@ -8,7 +8,7 @@ Future<void> main() async {
 
   //Login and extend session
   final login = await user.login('email@email.com', 'Password12345');
-  await user.extendSession('email@email.com', login.refreshToken);
+  await user.extendSession(login.refreshToken);
 
   //Add node mapping and check status
   final nodeAssociation = NodeAssociation(login.accessToken);
