@@ -64,6 +64,60 @@ class NodeAssociation {
     return NodesList.fromJson(bodyResp);
   }
 
+  /// Adds tags to the given **nodeId**.
+  ///
+  /// Will throw an exception when there is a failure containing a
+  /// description of the failure.
+  Future<void> addNodeTags(String nodeId, Map<String, String> tags) async {
+    final uri = _urlBase.getPath(_nodesBase, {
+      'node_id': nodeId,
+    });
+
+    final body = await JsonIsolate().encodeJson({
+      'tags': tags.entries.map((entry) => "${entry.key}:${entry.value}").toList(),
+    });
+
+    final resp = await put(
+      uri,
+      body: body,
+      headers: {
+        URLBase.authHeader: accessToken,
+      },
+    );
+    final Map<String, dynamic> bodyResp =
+    await JsonIsolate().decodeJson(resp.body);
+    if (resp.statusCode != 200) {
+      throw bodyResp['description'];
+    }
+  }
+
+  /// Removes tags of the given node.
+  ///
+  /// Will throw an exception when there is a failure containing a
+  /// description of the failure.
+  Future<void> removeTags(String nodeId, Map<String, String> tags) async {
+    final uri = _urlBase.getPath(_nodesBase, {
+      'node_id': nodeId,
+    });
+
+    final body = await JsonIsolate().encodeJson({
+      'tags': tags.entries.map((entry) => "${entry.key}:${entry.value}").toList(),
+    });
+
+    final resp = await delete(
+      uri,
+      body: body,
+      headers: {
+        URLBase.authHeader: accessToken,
+      },
+    );
+    final Map<String, dynamic> bodyResp =
+    await JsonIsolate().decodeJson(resp.body);
+    if (resp.statusCode != 200) {
+      throw bodyResp['description'];
+    }
+  }
+
   /// Gets the configuration of a single node.
   ///
   /// Will throw an exception when there is a failure containing a
