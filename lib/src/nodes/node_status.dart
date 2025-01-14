@@ -1,5 +1,4 @@
 import 'package:esp_rainmaker/esp_rainmaker.dart';
-import 'package:esp_rainmaker/src/url_base.dart';
 import 'package:http/http.dart';
 import 'package:isolate_json/isolate_json.dart';
 import 'package:meta/meta.dart';
@@ -32,12 +31,10 @@ class NodeState {
   ///  }
   ///}
   ///```
-  Future<void> updateState(String nodeId, Map<String, dynamic> params) async {
-    final uri = _urlBase.getPath(_nodeState, {
-      'node_id': nodeId,
-    });
+  Future<List<APIResponseWithNodeID>> updateState(List<SetNodeParamsRequestBody> nodeParamsRequests) async {
+    final uri = _urlBase.getPath(_nodeState);
 
-    final body = await JsonIsolate().encodeJson(params);
+    final body = await JsonIsolate().encodeJson(nodeParamsRequests);
 
     final resp = await put(
       uri,
@@ -46,10 +43,17 @@ class NodeState {
         URLBase.authHeader: accessToken,
       },
     );
-    final Map<String, dynamic> bodyResp =
-        await JsonIsolate().decodeJson(resp.body);
-    if (resp.statusCode != 200) {
+
+    if(resp.statusCode != 207) {
+      final Map<String, dynamic> bodyResp = await JsonIsolate().decodeJson(resp.body);
+
       throw bodyResp['description'];
+    } else {
+      final List<dynamic> bodyResp = await JsonIsolate().decodeJson(resp.body);
+
+      return List.from(bodyResp).map<APIResponseWithNodeID>(
+        (d) => APIResponseWithNodeID.fromJson(d),
+      ).toList();
     }
   }
 
@@ -105,8 +109,13 @@ class NodeState {
   ///  }
   ///}
   ///```
-  Future<void> createSchedule(String nodeId, String name, String id,
-      List<ScheduleTrigger> triggers, Map<String, dynamic> action) async {
+  Future<List<APIResponseWithNodeID>> createSchedule({
+    required List<String> nodeIDs,
+    required String name,
+    required String scheduleID,
+    required List<ScheduleTrigger> triggers,
+    required Map<String, dynamic> action,
+  }) async {
     final parsedTriggers = <Map<String, dynamic>>[];
     for (final trigger in triggers) {
       if (trigger is DayOfWeekTrigger) {
@@ -125,19 +134,27 @@ class NodeState {
       }
     }
 
-    await updateState(nodeId, {
-      'Schedule': {
-        'Schedules': [
-          {
-            'name': name,
-            'id': id,
-            'operation': 'add',
-            'triggers': parsedTriggers,
-            'action': action,
-          }
-        ],
-      }
-    });
+    return await updateState(
+      List.generate(
+        nodeIDs.length,
+        (index) => SetNodeParamsRequestBody(
+          nodeID: nodeIDs[index],
+          payload: {
+            'Schedule': {
+              'Schedules': [
+                {
+                  'name': name,
+                  'id': scheduleID,
+                  'operation': 'add',
+                  'triggers': parsedTriggers,
+                  'action': action,
+                }
+              ],
+            }
+          },
+        ),
+      ),
+    );
   }
 
   /// Helper function for editing a default Rainmaker schedule.
@@ -163,10 +180,13 @@ class NodeState {
   /// *all*, the objects should be complete. They cannot be partial.
   /// E.g. you should pass `"action":{"Light": {"power": true, "brightness":100}}`
   /// and not just `"action":{"Light": {"brightness":100}}`.
-  Future<void> editSchedule(String nodeId, String id,
-      {String? name,
-      List<ScheduleTrigger>? triggers,
-      Map<String, dynamic>? action}) async {
+  Future<List<APIResponseWithNodeID>> editSchedule({
+    required List<String> nodeIDs,
+    required String scheduleID,
+    String? name,
+    List<ScheduleTrigger>? triggers,
+    Map<String, dynamic>? action,
+  }) async {
     final parsedTriggers = <Map<String, dynamic>>[];
 
     if (triggers != null) {
@@ -188,49 +208,79 @@ class NodeState {
       }
     }
 
-    await updateState(nodeId, {
-      'Schedule': {
-        'Schedules': [
-          {
-            'name': name,
-            'id': id,
-            'operation': 'edit',
-            'triggers': parsedTriggers,
-            'action': action,
-          }
-        ],
-      }
-    });
+    return await updateState(
+      List.generate(
+        nodeIDs.length,
+        (index) => SetNodeParamsRequestBody(
+          nodeID: nodeIDs[index],
+          payload: {
+            'Schedule': {
+              'Schedules': [
+                {
+                  'name': name,
+                  'id': scheduleID,
+                  'operation': 'edit',
+                  'triggers': parsedTriggers,
+                  'action': action,
+                }
+              ],
+            }
+          },
+        ),
+      ),
+    );
   }
 
   /// Helper function for removing a default Rainmaker schedule.
-  Future<void> deleteSchedule(String nodeId, String id) async {
-    await updateState(nodeId, {
-      'Schedule': {
-        'Schedules': [
-          {
-            'id': id,
-            'operation': 'remove',
-          }
-        ],
-      }
-    });
+  Future<List<APIResponseWithNodeID>> deleteSchedule({
+    required List<String> nodeIDs,
+    required scheduleID,
+  }) async {
+    return await updateState(
+      List.generate(
+        nodeIDs.length,
+        (index) => SetNodeParamsRequestBody(
+          nodeID: nodeIDs[index],
+          payload: {
+            'Schedule': {
+              'Schedules': [
+                {
+                  'id': scheduleID,
+                  'operation': 'remove',
+                }
+              ],
+            }
+          },
+        ),
+      ),
+    );
   }
 
   /// Helper function for change the enable
   /// status of a default Rainmaker schedule.
-  Future<void> changeEnableSchedule(
-      String nodeId, String id, ScheduleEnableOperation operation) async {
-    await updateState(nodeId, {
-      'Schedule': {
-        'Schedules': [
-          {
-            'id': id,
-            'operation': operation.toShortString(),
-          }
-        ],
-      }
-    });
+  Future<List<APIResponseWithNodeID>> changeEnableSchedule({
+    required List<String> nodeIDs,
+    required String scheduleID,
+    required ScheduleEnableOperation operation,
+  }) async {
+    return await updateState(
+      List.generate(
+        nodeIDs.length,
+          (index) => SetNodeParamsRequestBody(
+          nodeID: nodeIDs[index],
+          payload: {
+            'Schedule': {
+              'Schedules': [
+                {
+                  'id': scheduleID,
+                  'operation': operation.toShortString(),
+                }
+              ],
+            }
+          },
+        ),
+      ),
+    );
   }
 
   /// Helper function to get the number of minutes from midnight.
@@ -266,6 +316,32 @@ class NodeState {
       return val1 | val2;
     });
   }
+}
+
+@immutable
+class SetNodeParamsRequestBody {
+  static const String nodeIDKey = 'node_id';
+  static const String payloadKey = 'payload';
+
+  final String nodeID;
+  final Map<String, dynamic> payload;
+
+  const SetNodeParamsRequestBody({
+    required this.nodeID,
+    required this.payload,
+  });
+
+  factory SetNodeParamsRequestBody.fromJson(Map<String, dynamic> json) {
+    return SetNodeParamsRequestBody(
+      nodeID: json[SetNodeParamsRequestBody.nodeIDKey],
+      payload: json[SetNodeParamsRequestBody.payloadKey],
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    SetNodeParamsRequestBody.nodeIDKey: nodeID,
+    SetNodeParamsRequestBody.payloadKey: payload,
+  };
 }
 
 /// Details the times at which a schedule event should trigger.

@@ -1,3 +1,4 @@
+import 'package:esp_rainmaker/src/api_response_models.dart';
 import 'package:meta/meta.dart';
 
 import 'node_status.dart';
@@ -320,3 +321,28 @@ enum MappingRequestStatus {
 
 /// Possible sources for a mapping request.
 enum MappingRequestSource { user, node }
+
+@immutable
+class APIResponseWithNodeID extends APIResponseModel {
+  static const String nodeIDKey = 'node_id';
+  final String nodeID;
+
+  APIResponseWithNodeID({
+    required this.nodeID,
+    required String status,
+    required String description,
+  }) : super(status: status, description: description);
+
+  factory APIResponseWithNodeID.fromJson(Map<String, dynamic> json) {
+    return APIResponseWithNodeID(
+      nodeID: json[APIResponseWithNodeID.nodeIDKey],
+      status: json[APIResponseModel.statusKey],
+      description: json[APIResponseModel.descriptionKey],
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    APIResponseWithNodeID.nodeIDKey: nodeID,
+    ...super.toJson(),
+  };
+}
