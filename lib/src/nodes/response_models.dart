@@ -25,19 +25,17 @@ class NodesList {
     required this.totalNodes,
   });
 
-  factory NodesList.fromJson(Map<String, dynamic> json) {
-    return NodesList(
-      nodeIds: [...(json['nodes'] ?? []).cast<String>()],
-      nodeDetails: [
-        ...(json['node_details'] ?? [])
-            .map<NodeDetails>(
-                (nodeDetails) => NodeDetails.fromJson(nodeDetails))
-            .toList()
-      ],
-      nextId: json['next_id'],
-      totalNodes: json['total'],
-    );
-  }
+  factory NodesList.fromJson(Map<String, dynamic> json) => NodesList(
+    nodeIds: [...(json['nodes'] ?? []).cast<String>()],
+    nodeDetails: [
+      ...(json['node_details'] ?? [])
+          .map<NodeDetails>(
+              (nodeDetails) => NodeDetails.fromJson(nodeDetails))
+          .toList()
+    ],
+    nextId: json['next_id'],
+    totalNodes: json['total'],
+  );
 
   @override
   String toString() {
@@ -71,20 +69,62 @@ class NodeDetails {
     this.params,
   });
 
-  factory NodeDetails.fromJson(Map<String, dynamic> json) {
-    return NodeDetails(
-      id: json['id'],
-      role: json['role'],
-      status: json['status'] != null ? NodeConnectivity.fromJson(json['status']['connectivity']) : null,
-      config: json['config'] != null ? NodeConfig.fromJson(json['config']) : null,
-      params: json['params'],
-    );
-  }
+  factory NodeDetails.fromJson(Map<String, dynamic> json) => NodeDetails(
+    id: json['id'],
+    role: json['role'],
+    status: json['status'] != null ? NodeConnectivity.fromJson(json['status']['connectivity']) : null,
+    config: json['config'] != null ? NodeConfig.fromJson(json['config']) : null,
+    params: json['params'],
+  );
 
   @override
   String toString() {
     return 'NodeDetails(Node Id: $id, Connectivity Status: $status, Config: $config, Node Params: $params)';
   }
+}
+
+@immutable
+class LocalControlData {
+  static const String proofOfPossessionKey = 'POP';
+  static const String typeKey = 'Type';
+
+  final String proofOfPossession;
+  final int type;
+
+  const LocalControlData({
+    required this.proofOfPossession,
+    required this.type,
+  });
+
+  factory LocalControlData.fromJson(Map<String, dynamic> json) {
+    return LocalControlData(
+      proofOfPossession: json[LocalControlData.proofOfPossessionKey],
+      type: json[LocalControlData.typeKey],
+    );
+  }
+}
+
+@immutable
+class SystemData {
+  static const String rebootKey = 'Reboot';
+  static const String factoryResetKey = 'Factory-Reset';
+  static const String wifiResetKey = 'Wi-Fi-Reset';
+
+  final bool? reboot;
+  final bool? factoryReset;
+  final bool? wifiReset;
+
+  const SystemData({
+    this.reboot,
+    this.factoryReset,
+    this.wifiReset,
+  });
+
+  factory SystemData.fromJson(Map<String, dynamic> json) => SystemData(
+    reboot: json[rebootKey],
+    factoryReset: json[factoryResetKey],
+    wifiReset: json[wifiResetKey],
+  );
 }
 
 @immutable
